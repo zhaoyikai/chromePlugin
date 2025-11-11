@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>智能表单填写助手</title>
+    <style>
+      body {
+        width: 600px;
+        height: 700px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f5f5f5;
+      }
+
+      .tab-container {
+        display: flex;
+        background-color: #fff;
+        border-bottom: 2px solid #007bff;
+      }
+
+      .tab-button {
+        flex: 1;
+        padding: 15px;
+        border: none;
+        background-color: #f5f5f5;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s;
+        border-bottom: 3px solid transparent;
+      }
+
+      .tab-button:hover {
+        background-color: #e9ecef;
+      }
+
+      .tab-button.active {
+        background-color: #fff;
+        color: #007bff;
+        border-bottom-color: #007bff;
+      }
+
+      .tab-content {
+        display: none;
+        height: calc(100% - 53px);
+      }
+
+      .tab-content.active {
+        display: block;
+      }
+
+      .form-assistant-content {
+        padding: 20px;
+        overflow-y: auto;
+        height: 100%;
+        box-sizing: border-box;
+      }
+
+      .tempmail-content {
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+
+      .tempmail-iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .header h1 {
+        font-size: 18px;
+        color: #333;
+        margin: 0;
+      }
+
+      .header p {
+        font-size: 12px;
+        color: #666;
+        margin: 5px 0 0 0;
+      }
+
+      .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .btn {
+        padding: 12px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .btn-primary {
+        background-color: #007bff;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background-color: #0056b3;
+      }
+
+      .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+      }
+
+      .btn-secondary:hover {
+        background-color: #545b62;
+      }
+
+      .stats {
+        background: white;
+        padding: 15px;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px;
+      }
+
+      .stats h3 {
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        color: #333;
+      }
+
+      .stat-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        font-size: 12px;
+      }
+
+      .stat-label {
+        color: #666;
+      }
+
+      .stat-value {
+        color: #333;
+        font-weight: bold;
+      }
+
+      .instructions {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 4px;
+        padding: 10px;
+        margin-top: 15px;
+        font-size: 12px;
+        color: #856404;
+      }
+
+      .instructions strong {
+        display: block;
+        margin-bottom: 5px;
+      }
+
+      .card-management {
+        background: white;
+        padding: 15px;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        margin-bottom: 15px;
+      }
+
+      .card-management h3 {
+        margin: 0 0 10px 0;
+        font-size: 14px;
+        color: #333;
+      }
+
+      textarea {
+        width: 100%;
+        height: 60px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 8px;
+        font-size: 11px;
+        font-family: monospace;
+        resize: vertical;
+        box-sizing: border-box;
+      }
+
+      .btn-small {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+
+      .btn-small:hover {
+        opacity: 0.9;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="tab-container">
+      <button class="tab-button active" data-tab="form-assistant">
+        📋 表单助手
+      </button>
+      <button class="tab-button" data-tab="tempmail">📧 临时邮箱</button>
+    </div>
+
+    <div id="form-assistant" class="tab-content active">
+      <div class="form-assistant-content">
+        <div class="header">
+          <h1>智能表单填写助手</h1>
+          <p>自动填写支付表单信息</p>
+        </div>
+
+        <div class="action-buttons">
+          <button id="fillFormBtn" class="btn btn-primary">
+            立即填写当前页面
+          </button>
+          <button id="resetUsedCardsBtn" class="btn btn-secondary">
+            重置已使用的银行卡
+          </button>
+        </div>
+
+        <div class="stats">
+          <h3>使用统计</h3>
+          <div class="stat-item">
+            <span class="stat-label">总银行卡数量:</span>
+            <span class="stat-value" id="totalCards">-</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">已使用数量:</span>
+            <span class="stat-value" id="usedCards">-</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">剩余可用:</span>
+            <span class="stat-value" id="remainingCards">-</span>
+          </div>
+        </div>
+
+        <div class="card-management">
+          <h3>银行卡数据管理</h3>
+          <textarea
+            id="cardDataInput"
+            placeholder="在此输入银行卡数据，格式：卡号|月|年|CVC，每行一个"
+          ></textarea>
+          <div style="display: flex; gap: 8px; margin-top: 8px">
+            <button
+              id="updateCardsBtn"
+              class="btn btn-secondary btn-small"
+              style="flex: 1"
+            >
+              更新银行卡数据
+            </button>
+            <button
+              id="clearCardsBtn"
+              class="btn btn-small"
+              style="flex: 1; background-color: #dc3545; color: white"
+            >
+              清空所有银行卡
+            </button>
+          </div>
+        </div>
+
+        <div class="instructions">
+          <strong>使用方法:</strong>
+          • 右键菜单选择 "一键填写支付信息"<br />
+          • 或按快捷键 Ctrl+Shift+F<br />
+          • 或点击上方 "立即填写" 按钮
+        </div>
+      </div>
+    </div>
+
+    <div id="tempmail" class="tab-content">
+      <div class="tempmail-content">
+        <iframe
+          class="tempmail-iframe"
+          data-src="https://tempmail.plus/zh/#!?faquaq@mailto.plus"
+        ></iframe>
+      </div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>
