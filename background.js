@@ -1,4 +1,4 @@
-// 美国常见姓名数据
+// 美国常见姓名数据1
 const AMERICAN_NAMES = {
   firstNames: [
     'James', 'Robert', 'John', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Christopher',
